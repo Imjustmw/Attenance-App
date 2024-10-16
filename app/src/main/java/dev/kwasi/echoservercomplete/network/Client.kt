@@ -16,7 +16,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface){
 
     init {
         thread {
-            clientSocket = Socket("192.168.49.1", Server.PORT)
+            clientSocket = Socket("192.168.49.1", 9999)
             reader = clientSocket.inputStream.bufferedReader()
             writer = clientSocket.outputStream.bufferedWriter()
             ip = clientSocket.inetAddress.hostAddress!!

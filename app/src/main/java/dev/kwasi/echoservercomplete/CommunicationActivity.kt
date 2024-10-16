@@ -20,7 +20,6 @@ import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
-import dev.kwasi.echoservercomplete.network.Server
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
@@ -42,9 +41,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var wfdAdapterEnabled = false
     private var wfdHasConnection = false
     private var hasDevices = false
-    private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
+    private var studentId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,7 +88,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     fun discoverNearbyPeers(view: View) {
-        wfdManager?.discoverPeers()
+        studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
+        if (studentId.isNotBlank()) {
+            wfdManager?.discoverPeers()
+        } else {
+            Toast.makeText(this,"Enter a valid Student Id", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun updateUI(){
@@ -117,7 +121,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
+        val content = ContentModel(etString, deviceIp, studentId)
         etMessage.text.clear()
         client?.sendMessage(content)
         chatListAdapter?.addItemToEnd(content)
@@ -139,7 +143,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
-        val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
+        val toast = Toast.makeText(this, "Updated listing of nearby classes", Toast.LENGTH_SHORT)
         toast.show()
         hasDevices = deviceList.isNotEmpty()
         peerListAdapter?.updateList(deviceList)
@@ -147,21 +151,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
-        val text = if (groupInfo == null){
-            "Group is not formed"
-        } else {
-            "Group has been formed"
-        }
-        val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
-        toast.show()
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
-            server?.close()
             client?.close()
-        } else if (groupInfo.isGroupOwner && server == null){
-            server = Server(this)
-            deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this)
             deviceIp = client!!.ip
@@ -169,12 +162,16 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
-        val toast = Toast.makeText(this, "Device parameters have been updated" , Toast.LENGTH_SHORT)
-        toast.show()
+
     }
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
-        wfdManager?.connectToPeer(peer)
+        studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
+        if (studentId.isNotBlank()) {
+            wfdManager?.connectToPeer(peer)
+        } else {
+            Toast.makeText(this,"Enter a valid Student Id", Toast.LENGTH_SHORT).show()
+        }
     }
 
 

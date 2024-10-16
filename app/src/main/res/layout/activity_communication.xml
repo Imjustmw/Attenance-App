@@ -58,47 +58,62 @@
             android:id="@+id/tvWfdDisconnected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WiFi Direct - Disconnected"
+            android:text="Attendance and Feedback System"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/btnCreateGroup"
+        <TextView
+            android:id="@+id/tvStudentId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="62dp"
-            android:layout_marginEnd="50dp"
-            android:onClick="createGroup"
-            android:text="Create Group"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintEnd_toStartOf="@+id/btnDiscover"
+            android:text="Student:"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvWfdDisconnected" />
+            app:layout_constraintTop_toBottomOf="@+id/tvWfdDisconnected"/>
+
+        <EditText
+            android:id="@+id/etStudentId"
+            android:layout_width="wrap_content"
+            android:inputType="number"
+            android:maxLines="1"
+            android:hint="Enter Student ID"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/tvStudentId"
+            app:layout_constraintTop_toBottomOf="@+id/tvStudentId"/>
 
         <Button
             android:id="@+id/btnDiscover"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="62dp"
             android:onClick="discoverNearbyPeers"
-            android:text="Discover Nearby"
+            android:text="Search for Classes"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/btnCreateGroup"
-            app:layout_constraintTop_toBottomOf="@+id/tvWfdDisconnected" />
+            app:layout_constraintTop_toTopOf="@+id/etStudentId" />
 
+        <TextView
+            android:id="@+id/tvNearbyClasses"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nearby Classes:"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etStudentId"
+            android:layout_marginTop="24dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPeerListing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnCreateGroup" />
+            app:layout_constraintTop_toBottomOf="@+id/tvNearbyClasses" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
