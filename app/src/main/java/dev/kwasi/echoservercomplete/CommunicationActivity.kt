@@ -233,7 +233,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                 challengeMap[studentId!!] = randomR
                 server?.sendMessageToClient(ContentModel(randomR, deviceIp, studentId))
 
-            } else {
+            } else if (challengeMap[studentId] != null) {
                 // Process the response from the challenge
                 val randomR = challengeMap[studentId]
 
