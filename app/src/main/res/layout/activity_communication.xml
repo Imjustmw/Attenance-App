@@ -125,14 +125,29 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        
+
+        <TextView
+            android:id="@+id/tvNetworkInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:text="Class network: Direct_AB_Local"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvChat"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="12dp"
             app:layout_constraintBottom_toTopOf="@id/llChatSend"
-            />
+            app:layout_constraintTop_toBottomOf="@id/tvNetworkInfo"
+            app:layout_constraintVertical_bias="1.0"
+            tools:layout_editor_absoluteX="201dp" />
 
         <LinearLayout
             android:id="@+id/llChatSend"

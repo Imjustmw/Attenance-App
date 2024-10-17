@@ -24,6 +24,12 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import java.security.MessageDigest
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import kotlin.io.encoding.Base64
+import kotlin.text.Charsets.UTF_8
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -44,6 +50,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var client: Client? = null
     private var deviceIp: String = ""
     private var studentId: String = ""
+    private var authorized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,6 +165,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this)
             deviceIp = client!!.ip
+            studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
+            // Initiate Challenge Response Protocol
+            client?.sendMessage(ContentModel("I am here", deviceIp, studentId))
         }
     }
 
@@ -177,8 +187,56 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{
-            chatListAdapter?.addItemToEnd(content)
+            val sentStudentId = content.studentId
+            val message = content.message
+            val aesKey = generateAESKey(sentStudentId)
+            val aesIv = generateIV(sentStudentId)
+
+            if (!authorized) {
+                // This should be random R, so encrypt and return
+                val encryptedMessage = encryptMessage(message, aesKey, aesIv)
+                client?.sendMessage(ContentModel(encryptedMessage, deviceIp, studentId))
+                authorized = true
+            } else {
+                // Authorized to receive messages, must be decrypted
+                val decryptedMessage = decryptMessage(message, aesKey, aesIv)
+                val decryptedContent = ContentModel(decryptedMessage, content.senderIp, sentStudentId, content.timestamp)
+                chatListAdapter?.addItemToEnd(decryptedContent)
+            }
+
         }
     }
+
+    private fun hashStrSha256(str: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        return digest.digest(str.toByteArray(UTF_8)).joinToString("") { "%02x".format(it) }
+    }
+
+    private fun generateAESKey(seed: String): SecretKeySpec {
+        val keyBytes = hashStrSha256(seed).substring(0, 32).toByteArray(UTF_8)
+        return SecretKeySpec(keyBytes, "AES")
+    }
+
+    private fun generateIV(seed: String): IvParameterSpec {
+        val ivBytes = seed.substring(0, 16).toByteArray(UTF_8)
+        return IvParameterSpec(ivBytes)
+    }
+
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+    private fun encryptMessage(plaintext: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.ENCRYPT_MODE, aesKey, aesIv)
+        val encrypted = cipher.doFinal(plaintext.toByteArray())
+        return Base64.Default.encode(encrypted)
+    }
+
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+    private fun decryptMessage(encryptedText: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
+        val decodedBytes = Base64.Default.decode(encryptedText)
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.DECRYPT_MODE, aesKey, aesIv)
+        return String(cipher.doFinal(decodedBytes))
+    }
+
 
 }
