@@ -6,6 +6,7 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -18,13 +19,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
-import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import kotlin.random.Random
+import java.security.MessageDigest
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
+import kotlin.io.encoding.Base64
+import kotlin.text.Charsets.UTF_8
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -43,8 +50,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var wfdHasConnection = false
     private var hasDevices = false
     private var server: Server? = null
-    private var client: Client? = null
     private var deviceIp: String = ""
+    private var selectedPeer: WifiP2pDevice? = null
+    private val peerMessagesMap: HashMap<String, MutableList<ContentModel>> = HashMap()
+    private val serverMessagesMap: HashMap<String, MutableList<ContentModel>> = HashMap()
+
+    private val challengeMap = mutableMapOf<String, String>()
+    private val authenticateStudents = mutableSetOf<String>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,21 +73,25 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val channel = manager.initialize(this, mainLooper, null)
         wfdManager = WifiDirectManager(manager, channel, this)
 
-        peerListAdapter = PeerListAdapter(this)
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.adapter = peerListAdapter
-        rvPeerList.layoutManager = LinearLayoutManager(this)
-
         chatListAdapter = ChatListAdapter()
         val rvChatList: RecyclerView = findViewById(R.id.rvChat)
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
+
+        peerListAdapter = PeerListAdapter(this)
+        val rvPeerList: RecyclerView= findViewById(R.id.rvAttendees)
+        rvPeerList.adapter = peerListAdapter
+        rvPeerList.layoutManager = LinearLayoutManager(this)
+
+        // remove existing group if any
+        wfdManager?.disconnect()
     }
 
     override fun onResume() {
         super.onResume()
         wfdManager?.also {
             registerReceiver(it, intentFilter)
+            it.requestPeers()
         }
     }
 
@@ -88,40 +105,53 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdManager?.createGroup()
     }
 
-    fun discoverNearbyPeers(view: View) {
-        wfdManager?.discoverPeers()
+    fun removeGroup(view: View) {
+        wfdManager?.disconnect()
     }
 
     private fun updateUI(){
-        //The rules for updating the UI are as follows:
-        // IF the WFD adapter is NOT enabled then
-        //      Show UI that says turn on the wifi adapter
-        // ELSE IF there is NO WFD connection then i need to show a view that allows the user to either
-            // 1) create a group with them as the group owner OR
-            // 2) discover nearby groups
-        // ELSE IF there are nearby groups found, i need to show them in a list
-        // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
         val wfdNoConnectionView:ConstraintLayout = findViewById(R.id.clNoWifiDirectConnection)
         wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
-        val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
-
         val wfdConnectedView:ConstraintLayout = findViewById(R.id.clHasConnection)
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
+    }
+
+    private fun updateChatUI(peer: WifiP2pDevice) {
+        val studentId = server?.getStudentIdByDeviceAddress(peer.deviceAddress)
+        val studentMessages = peerMessagesMap[studentId] ?: mutableListOf()
+        val serverMessages = serverMessagesMap[studentId] ?: mutableListOf()
+
+        val messages = (studentMessages + serverMessages).sortedBy { it.timestamp }
+        chatListAdapter?.updateChat(messages)
     }
 
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
-        etMessage.text.clear()
-        client?.sendMessage(content)
-        chatListAdapter?.addItemToEnd(content)
 
+        if (selectedPeer != null) {
+            val studentId = server?.getStudentIdByDeviceAddress(selectedPeer!!.deviceAddress)
+            val aesKey = generateAESKey(studentId!!)
+            val aesIv = generateIV(studentId)
+            val encryptedMessage = encryptMessage(etString, aesKey, aesIv)
+
+            // Store the original message for the server messages map
+            val serverContent = ContentModel(etString, deviceIp, studentId)
+            serverMessagesMap.getOrPut(studentId) { mutableListOf() }.add(serverContent)
+
+            val encryptedContent = ContentModel(encryptedMessage, deviceIp, studentId)
+            etMessage.text.clear()
+            server?.sendMessageToClient(encryptedContent)
+
+            // Update chat UI with the original message from the server
+            chatListAdapter?.addItemToEnd(serverContent)
+        } else {
+            Log.e("Chat", "No peer selected. Cannot send message")
+        }
     }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
@@ -138,50 +168,119 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         updateUI()
     }
 
-    override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
-        val toast = Toast.makeText(this, "Updated listing of nearby WiFi Direct devices", Toast.LENGTH_SHORT)
-        toast.show()
-        hasDevices = deviceList.isNotEmpty()
-        peerListAdapter?.updateList(deviceList)
-        updateUI()
-    }
-
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
-        val text = if (groupInfo == null){
-            "Group is not formed"
-        } else {
-            "Group has been formed"
-        }
-        val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
-        toast.show()
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
             server?.close()
-            client?.close()
         } else if (groupInfo.isGroupOwner && server == null){
             server = Server(this)
             deviceIp = "192.168.49.1"
-        } else if (!groupInfo.isGroupOwner && client == null) {
-            client = Client(this)
-            deviceIp = client!!.ip
         }
+        updateUI()
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
-        val toast = Toast.makeText(this, "Device parameters have been updated" , Toast.LENGTH_SHORT)
-        toast.show()
+    }
+
+    override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
+        hasDevices = deviceList.isNotEmpty()
+        val peersWithIds = deviceList.map {device ->
+            val studentId = server?.getStudentIdByDeviceAddress(device.deviceAddress) ?: device.deviceName
+            device to studentId
+        }
+        peerListAdapter?.updateList(peersWithIds)
+        updateUI()
     }
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
-        wfdManager?.connectToPeer(peer)
+        // Chat Directly with Peer (Student)
+        selectedPeer = peer
+        updateChatUI(peer)
     }
 
-
     override fun onContent(content: ContentModel) {
-        runOnUiThread{
-            chatListAdapter?.addItemToEnd(content)
+        runOnUiThread {
+            val receivedMessage = content.message
+            val studentId = content.studentId
+
+            // If student is already authenticated
+            if (authenticateStudents.contains(studentId)) {
+                val aesKey = generateAESKey(studentId!!)
+                val aesIv = generateIV(studentId)
+                val decryptedMessage = decryptMessage(receivedMessage, aesKey, aesIv)
+                val decryptedContent = ContentModel(decryptedMessage, content.senderIp, studentId)
+
+                // store the received message in the peerMessageMap
+                chatListAdapter?.addItemToEnd(decryptedContent)
+                peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(decryptedContent)
+                Log.d("Messages", "Added message for student: $studentId. Total messages: ${peerMessagesMap[studentId]?.size}")
+                return@runOnUiThread
+            }
+
+            // Start challenge-response protocol
+            if (receivedMessage == "I am here" && server?.classStudentIds?.contains(studentId) == true) {
+
+                // Generate and send random challenge R to the student
+                val randomR = Random.nextInt(1, 10001).toString()
+                challengeMap[studentId!!] = randomR
+                server?.sendMessageToClient(ContentModel(randomR, deviceIp, studentId))
+
+            } else {
+                // Process the response from the challenge
+                val randomR = challengeMap[studentId]
+
+                if (randomR != null) {
+                    val aesKey = generateAESKey(studentId!!)
+                    val aesIv = generateIV(studentId)
+                    val decryptedR = decryptMessage(receivedMessage, aesKey, aesIv)
+
+                    // Verify the decrypted response
+                    if (decryptedR == randomR) {
+                        Log.i("Authentication", "Student authenticated successfully: $studentId")
+                        authenticateStudents.add(studentId)
+                    } else {
+                        Log.e("Authentication", "Failed to authenticate student: $studentId")
+                    }
+
+                    challengeMap.remove(studentId)
+                } else {
+                    Log.e("Authentication", "No challenge found for student: $studentId")
+                }
+
+            }
         }
+    }
+
+    private fun hashStrSha256(str: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        return digest.digest(str.toByteArray(UTF_8)).joinToString("") { "%02x".format(it) }
+    }
+
+    private fun generateAESKey(seed: String): SecretKeySpec {
+        val keyBytes = hashStrSha256(seed).substring(0, 32).toByteArray(UTF_8)
+        return SecretKeySpec(keyBytes, "AES")
+    }
+
+    private fun generateIV(seed: String): IvParameterSpec {
+        val ivBytes = seed.substring(0, 16).toByteArray(UTF_8)
+        return IvParameterSpec(ivBytes)
+    }
+
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+    private fun encryptMessage(plaintext: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.ENCRYPT_MODE, aesKey, aesIv)
+        val encrypted = cipher.doFinal(plaintext.toByteArray())
+        return Base64.Default.encode(encrypted)
+    }
+
+    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
+    private fun decryptMessage(encryptedText: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
+        val decodedBytes = Base64.Default.decode(encryptedText)
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+        cipher.init(Cipher.DECRYPT_MODE, aesKey, aesIv)
+        return String(cipher.doFinal(decodedBytes))
     }
 
 }

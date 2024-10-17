@@ -114,6 +114,14 @@ class WifiDirectManager(
         })
     }
 
+    @SuppressLint("MissingPermission")
+    fun requestPeers() {
+        manager.requestPeers(channel, WifiP2pManager.PeerListListener { peerList ->
+            iFaceImpl.onPeerListUpdated(peerList.deviceList)
+        })
+    }
+
+    @SuppressLint("MissingPermission")
     fun disconnect(){
         manager.removeGroup(channel, object : ActionListener {
             override fun onSuccess() {
@@ -122,7 +130,6 @@ class WifiDirectManager(
             override fun onFailure(reason: Int) {
                 Log.e("WFDManager","An error occurred while trying to disconnect from the group")
             }
-
         })
     }
 }

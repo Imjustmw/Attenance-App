@@ -5,16 +5,18 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 
 class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerView.Adapter<PeerListAdapter.ViewHolder>() {
-    private val peersList:MutableList<WifiP2pDevice> = mutableListOf()
+    private val peersList:MutableList<Pair<WifiP2pDevice, String?>> = mutableListOf()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
+        val askQuestionButton: Button = itemView.findViewById(R.id.btnChatToStudent)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -23,12 +25,12 @@ class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerV
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val peer = peersList[position]
+        val (peer, studentId) = peersList[position]
 
-        holder.titleTextView.text = peer.deviceName
+        holder.titleTextView.text = studentId ?: peer.deviceName
         holder.descriptionTextView.text = peer.deviceAddress
 
-        holder.itemView.setOnClickListener {
+        holder.askQuestionButton.setOnClickListener {
             iFaceImpl.onPeerClicked(peer)
         }
     }
@@ -38,9 +40,10 @@ class PeerListAdapter(private val iFaceImpl:PeerListAdapterInterface): RecyclerV
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateList(newPeersList:Collection<WifiP2pDevice>){
+    fun updateList(newPeersList:Collection<Pair<WifiP2pDevice, String?>>){
         peersList.clear()
         peersList.addAll(newPeersList)
+
         notifyDataSetChanged()
     }
 }
