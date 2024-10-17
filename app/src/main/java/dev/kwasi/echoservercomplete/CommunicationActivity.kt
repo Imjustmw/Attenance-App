@@ -6,6 +6,7 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
@@ -77,8 +78,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
 
-        // removeGroup
-        wfdManager?.disconnect()
     }
 
     override fun onResume() {
@@ -94,9 +93,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             unregisterReceiver(it)
         }
     }
-    fun createGroup(view: View) {
-        wfdManager?.createGroup()
-    }
 
     fun discoverNearbyPeers(view: View) {
         studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
@@ -108,6 +104,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     private fun updateUI(){
+        Log.d("Communication", "wfdAdapter: $wfdAdapterEnabled, wfdHasConnection: $wfdHasConnection")
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
@@ -140,15 +137,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
         wfdAdapterEnabled = isEnabled
-        var text = "There was a state change in the WiFi Direct. Currently it is "
+        var text = "Wifi Direct State: "
         text = if (isEnabled){
             "$text enabled!"
         } else {
-            "$text disabled! Try turning on the WiFi adapter"
+            "$text disabled!"
         }
-
         val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
         toast.show()
+        updateUI()
     }
 
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
@@ -174,6 +171,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             // Initiate Challenge Response Protocol
             client?.sendMessage(ContentModel("I am here", deviceIp, studentId))
         }
+        Toast.makeText(this, "GroupStatus: $wfdHasConnection", Toast.LENGTH_SHORT).show()
         updateUI()
     }
 
