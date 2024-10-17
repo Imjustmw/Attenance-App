@@ -76,6 +76,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val rvChatList: RecyclerView = findViewById(R.id.rvChat)
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
+
+        // removeGroup
+        wfdManager?.disconnect()
     }
 
     override fun onResume() {
@@ -105,14 +108,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     private fun updateUI(){
-        //The rules for updating the UI are as follows:
-        // IF the WFD adapter is NOT enabled then
-        //      Show UI that says turn on the wifi adapter
-        // ELSE IF there is NO WFD connection then i need to show a view that allows the user to either
-            // 1) create a group with them as the group owner OR
-            // 2) discover nearby groups
-        // ELSE IF there are nearby groups found, i need to show them in a list
-        // ELSE IF i have a WFD connection i need to show a chat interface where i can send/receive messages
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)
         wfdAdapterErrorView.visibility = if (!wfdAdapterEnabled) View.VISIBLE else View.GONE
 
@@ -141,7 +136,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val encryptedContent = ContentModel(encryptedText, deviceIp, studentId)
         client?.sendMessage(encryptedContent)
 
-
     }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
@@ -155,7 +149,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
         val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
         toast.show()
-        updateUI()
     }
 
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
@@ -181,6 +174,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             // Initiate Challenge Response Protocol
             client?.sendMessage(ContentModel("I am here", deviceIp, studentId))
         }
+        updateUI()
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
