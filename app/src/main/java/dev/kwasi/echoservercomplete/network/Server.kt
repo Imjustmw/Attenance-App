@@ -21,7 +21,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
     private val studentIdMap: MutableMap<String, String?> = mutableMapOf()
-    val classStudentIds = listOf("student1", "student2", "student3")
+    val classStudentIds = listOf("student1", "student2", "student3", "816032311")
 
     init {
         thread{
