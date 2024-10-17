@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -171,11 +172,17 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         wfdHasConnection = groupInfo != null
 
+        val tvNetworkInfo = findViewById<TextView>(R.id.tvNetworkInfo)
         if (groupInfo == null){
             server?.close()
+            tvNetworkInfo.text = "Not connected to network"
         } else if (groupInfo.isGroupOwner && server == null){
             server = Server(this)
             deviceIp = "192.168.49.1"
+
+            val ssid = groupInfo.networkName
+            val password = groupInfo.passphrase
+            tvNetworkInfo.text = "Class Network: $ssid\nNetwork Password: $password"
         }
         updateUI()
     }
