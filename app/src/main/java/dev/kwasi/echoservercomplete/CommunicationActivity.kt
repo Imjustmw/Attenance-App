@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -128,10 +129,18 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp, studentId)
+
+        val clientContent = ContentModel(etString, deviceIp, studentId)
         etMessage.text.clear()
-        client?.sendMessage(content)
-        chatListAdapter?.addItemToEnd(content)
+        chatListAdapter?.addItemToEnd(clientContent)
+
+        // Encrypt Message
+        val aesKey = generateAESKey(studentId)
+        val aesIv = generateIV(studentId)
+        val encryptedText = encryptMessage(etString, aesKey, aesIv)
+        val encryptedContent = ContentModel(encryptedText, deviceIp, studentId)
+        client?.sendMessage(encryptedContent)
+
 
     }
 
@@ -159,13 +168,16 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
         wfdHasConnection = groupInfo != null
+        val tvNetworkInfo = findViewById<TextView>(R.id.tvNetworkInfo)
 
         if (groupInfo == null){
+            tvNetworkInfo.text = "Network not connected"
             client?.close()
         } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this)
             deviceIp = client!!.ip
             studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
+            tvNetworkInfo.text = "Class Network: ${groupInfo.networkName}"
             // Initiate Challenge Response Protocol
             client?.sendMessage(ContentModel("I am here", deviceIp, studentId))
         }
