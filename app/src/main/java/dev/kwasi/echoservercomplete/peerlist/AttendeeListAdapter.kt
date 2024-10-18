@@ -1,6 +1,7 @@
 package dev.kwasi.echoservercomplete.peerlist
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,7 +41,7 @@ class AttendeeListAdapter(private val iFaceImpl: AttendeeListAdapterInterface) :
     fun updateList(newAttendeesList: Collection<String>) {
         attendeesList.clear()
         attendeesList.addAll(newAttendeesList)
-
+        Log.d("AttendeeListAdapter", "Updated list: $attendeesList")
         notifyDataSetChanged()
     }
 }
