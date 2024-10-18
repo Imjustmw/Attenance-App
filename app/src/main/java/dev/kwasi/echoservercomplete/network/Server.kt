@@ -54,7 +54,6 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                         if (receivedJson!= null){
                             Log.e("SERVER", "Received a message from client $it")
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
-                            iFaceImpl.onContent(clientContent)
 
                             val studentId = clientContent.studentId
                             val deviceAddress = clientContent.deviceAddress
@@ -65,6 +64,8 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                                     deviceAddressMap[deviceAddress] = studentId
                                 }
                             }
+
+                            iFaceImpl.onContent(clientContent)
 
                         }
                     } catch (e: Exception){

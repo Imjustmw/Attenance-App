@@ -226,6 +226,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             if (studentId != null) {
                 peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(content)
             }
+            Toast.makeText(this, "ID: $studentId\nAddress: ${content.deviceAddress}", Toast.LENGTH_SHORT).show()
             // If student is already authenticated
             /*if (authenticateStudents.contains(studentId)) {
                 val aesKey = generateAESKey(studentId!!)
