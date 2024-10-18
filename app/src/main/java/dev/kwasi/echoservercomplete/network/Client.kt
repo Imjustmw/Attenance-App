@@ -9,7 +9,7 @@ import java.io.BufferedWriter
 import java.net.Socket
 import kotlin.concurrent.thread
 
-class Client (private val networkMessageInterface: NetworkMessageInterface, private val studentId: String, private val deviceAddress: String){
+class Client (private val networkMessageInterface: NetworkMessageInterface, private val studentId: String){
     private lateinit var clientSocket: Socket
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
@@ -27,7 +27,6 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
                 message = "I am here",
                 senderIp = ip,
                 studentId = studentId,
-                deviceAddress = deviceAddress
             )
             sendMessage(challengeProtocol)
 

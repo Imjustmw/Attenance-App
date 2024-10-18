@@ -8,6 +8,5 @@ data class ContentModel(
     val message:String,
     var senderIp:String,
     var studentId: String,
-    var deviceAddress: String,
     var timestamp: Long = System.currentTimeMillis()
 )
