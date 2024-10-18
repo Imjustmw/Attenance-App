@@ -3,6 +3,7 @@ package dev.kwasi.echoservercomplete.network
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -20,7 +21,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
-    private val deviceAddressMap: MutableMap<String, String?> = mutableMapOf()
+    private val attendeesList: MutableList<String> = mutableListOf() // Attendees list
     val classStudentIds = listOf("student1", "student2", "student3", "816032311")
 
     init {
@@ -56,13 +57,9 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
 
                             val studentId = clientContent.studentId
-                            val deviceAddress = clientContent.deviceAddress
-
                             if (studentId!= null && clientMap[studentId]==null) {
                                 clientMap[studentId] = socket
-                                if (deviceAddress!=null && deviceAddressMap[deviceAddress]==null){
-                                    deviceAddressMap[deviceAddress] = studentId
-                                }
+                                addAttendee(studentId)
                             }
 
                             iFaceImpl.onContent(clientContent)
@@ -81,7 +78,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
         val socket = clientMap[content.studentId]
         if (socket != null) {
             val writer = socket.outputStream.bufferedWriter()
-            val newContent = ContentModel(content.message, "192.168.49.1", content.studentId, content.deviceAddress)
+            val newContent = ContentModel(content.message, "192.168.49.1", content.studentId)
             val contentStr = Gson().toJson(newContent)
             writer.write("$contentStr\n")
             writer.flush()
@@ -90,8 +87,13 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
         }
     }
 
-    fun getStudentIdByDeviceAddress(deviceAddress: String): String? {
-        return deviceAddressMap[deviceAddress]
+    private fun addAttendee(studentId: String) {
+        if (!attendeesList.contains(studentId)) {
+            attendeesList.add(studentId)
+            Log.e("SERVER", "Added attendee: $studentId")
+
+            iFaceImpl.onAttendeeListUpdated(attendeesList)
+        }
     }
 
     fun close(){

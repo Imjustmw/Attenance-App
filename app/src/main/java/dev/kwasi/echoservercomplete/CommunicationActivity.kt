@@ -22,6 +22,8 @@ import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
+import dev.kwasi.echoservercomplete.peerlist.AttendeeListAdapter
+import dev.kwasi.echoservercomplete.peerlist.AttendeeListAdapterInterface
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
@@ -34,7 +36,7 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
 import kotlin.text.Charsets.UTF_8
 
-class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
+class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, AttendeeListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
 
     private val intentFilter = IntentFilter().apply {
@@ -44,7 +46,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
 
-    private var peerListAdapter:PeerListAdapter? = null
+    private var attendeeListAdapter:AttendeeListAdapter? = null
     private var chatListAdapter:ChatListAdapter? = null
 
     private var wfdAdapterEnabled = false
@@ -52,7 +54,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var hasDevices = false
     private var server: Server? = null
     private var deviceIp: String = ""
-    private var selectedPeer: WifiP2pDevice? = null
+    private var selectedStudent: String? = null
     private val peerMessagesMap: HashMap<String, MutableList<ContentModel>> = HashMap()
     private val serverMessagesMap: HashMap<String, MutableList<ContentModel>> = HashMap()
 
@@ -79,10 +81,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         rvChatList.adapter = chatListAdapter
         rvChatList.layoutManager = LinearLayoutManager(this)
 
-        peerListAdapter = PeerListAdapter(this)
+        attendeeListAdapter = AttendeeListAdapter(this)
         val rvPeerList: RecyclerView= findViewById(R.id.rvAttendees)
-        rvPeerList.adapter = peerListAdapter
+        rvPeerList.adapter = attendeeListAdapter
         rvPeerList.layoutManager = LinearLayoutManager(this)
+
+
 
         // remove existing group if any
         wfdManager?.disconnect()
@@ -121,8 +125,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
-    private fun updateChatUI(peer: WifiP2pDevice) {
-        val studentId = server?.getStudentIdByDeviceAddress(peer.deviceAddress)
+    private fun updateChatUI(studentId: String) {
         val studentMessages = peerMessagesMap[studentId] ?: mutableListOf()
         val serverMessages = serverMessagesMap[studentId] ?: mutableListOf()
 
@@ -130,35 +133,28 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         chatListAdapter?.updateChat(messages)
 
         val clChatInterface:ConstraintLayout = findViewById(R.id.clChatInterface)
-        clChatInterface.visibility = if (selectedPeer != null)View.VISIBLE else View.GONE
+        clChatInterface.visibility = if (selectedStudent != null)View.VISIBLE else View.GONE
     }
 
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
 
-        if (selectedPeer != null) {
-            val deviceAddress = selectedPeer!!.deviceAddress
-            val studentId = server?.getStudentIdByDeviceAddress(deviceAddress)
+        if (selectedStudent != null) {
             /*val aesKey = generateAESKey(studentId!!)
             val aesIv = generateIV(studentId)
             val encryptedMessage = encryptMessage(etString, aesKey, aesIv)
             val encryptedContent = ContentModel(encryptedMessage, deviceIp, studentId)
              */
 
-            if (studentId != null) {
-                // Store the original message for the server messages map
-                val serverContent = ContentModel(etString, deviceIp, studentId, deviceAddress)
-                serverMessagesMap.getOrPut(studentId) { mutableListOf() }.add(serverContent)
+            val serverContent = ContentModel(etString, deviceIp, selectedStudent)
+            serverMessagesMap.getOrPut(selectedStudent!!) { mutableListOf() }.add(serverContent)
 
-                etMessage.text.clear()
-                server?.sendMessageToClient(serverContent)
+            etMessage.text.clear()
+            server?.sendMessageToClient(serverContent)
 
-                // Update chat UI with the original message from the server
-                chatListAdapter?.addItemToEnd(serverContent)
-            }else {
-                Log.e("Chat", "No student ID found for the device address: $deviceAddress")
-            }
+            // Update chat UI with the original message from the server
+            chatListAdapter?.addItemToEnd(serverContent)
 
         } else {
             Log.e("Chat", "No peer selected. Cannot send message")
@@ -202,21 +198,19 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
-        hasDevices = deviceList.isNotEmpty()
-        val peersWithIds = deviceList.map {device ->
-            val studentId = server?.getStudentIdByDeviceAddress(device.deviceAddress)
-            device to studentId
-        }
-        peerListAdapter?.updateList(peersWithIds)
+
+    }
+
+    override fun onAttendeeListUpdated(attendees: List<String>) {
+        hasDevices = attendees.isNotEmpty()
+        attendeeListAdapter?.updateList(attendees)
         updateUI()
     }
 
-    override fun onPeerClicked(peer: WifiP2pDevice) {
-        // Chat Directly with Peer (Student)
-        selectedPeer = peer
-        findViewById<TextView>(R.id.tvStudentChat).text = "Student: ${server?.getStudentIdByDeviceAddress(peer.deviceAddress)}"
-        updateChatUI(peer)
-        Toast.makeText(this, "Selected: ${selectedPeer!!.deviceAddress}", Toast.LENGTH_SHORT).show()
+    override fun onAttendeeClicked(studentId: String) {
+        selectedStudent = studentId
+        findViewById<TextView>(R.id.tvStudentChat).text = "Student: $studentId"
+        updateChatUI(studentId)
     }
 
     override fun onContent(content: ContentModel) {
@@ -227,7 +221,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             if (studentId != null) {
                 peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(content)
             }
-            Toast.makeText(this, "ID: $studentId\nAddress: ${content.deviceAddress}", Toast.LENGTH_SHORT).show()
             // If student is already authenticated
             /*if (authenticateStudents.contains(studentId)) {
                 val aesKey = generateAESKey(studentId!!)
