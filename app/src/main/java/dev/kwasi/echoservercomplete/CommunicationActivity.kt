@@ -215,9 +215,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         runOnUiThread {
             val receivedMessage = content.message
             val studentId = content.studentId
-
+            chatListAdapter?.addItemToEnd(content)
             // If student is already authenticated
-            if (authenticateStudents.contains(studentId)) {
+            /*if (authenticateStudents.contains(studentId)) {
                 val aesKey = generateAESKey(studentId!!)
                 val aesIv = generateIV(studentId)
                 val decryptedMessage = decryptMessage(receivedMessage, aesKey, aesIv)
@@ -260,7 +260,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                     Log.e("Authentication", "No challenge found for student: $studentId")
                 }
 
-            }
+            }*/
         }
     }
 
