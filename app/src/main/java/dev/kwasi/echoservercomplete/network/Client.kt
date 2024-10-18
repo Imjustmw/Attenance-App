@@ -1,5 +1,6 @@
 package dev.kwasi.echoservercomplete.network
 
+import android.net.wifi.p2p.WifiP2pDevice
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
@@ -8,7 +9,7 @@ import java.io.BufferedWriter
 import java.net.Socket
 import kotlin.concurrent.thread
 
-class Client (private val networkMessageInterface: NetworkMessageInterface, private val studentId: String){
+class Client (private val networkMessageInterface: NetworkMessageInterface, private val studentId: String, private val deviceAddress: String){
     private lateinit var clientSocket: Socket
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
@@ -25,7 +26,8 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
             val challengeProtocol = ContentModel(
                 message = "I am here",
                 senderIp = ip,
-                studentId = studentId
+                studentId = studentId,
+                deviceAddress = deviceAddress
             )
             sendMessage(challengeProtocol)
 

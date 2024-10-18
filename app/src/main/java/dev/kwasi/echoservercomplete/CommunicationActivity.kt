@@ -51,8 +51,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var hasDevices = false
     private var client: Client? = null
     private var deviceIp: String = ""
+    private var deviceAddress: String = ""
     private var studentId: String = ""
+
     private var authorized = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,7 +125,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
 
-        val clientContent = ContentModel(etString, deviceIp, studentId)
+        val clientContent = ContentModel(etString, deviceIp, studentId, deviceAddress)
         etMessage.text.clear()
         chatListAdapter?.addItemToEnd(clientContent)
         client?.sendMessage(clientContent)
@@ -166,7 +169,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             client?.close()
         } else if (!groupInfo.isGroupOwner && client == null) {
             studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
-            client = Client(this, studentId)
+            client = Client(this, studentId, deviceAddress)
             deviceIp = client!!.ip
             tvNetworkInfo.text = "Class Network: ${groupInfo.networkName}"
         }
@@ -175,7 +178,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
-
+        deviceAddress = thisDevice.deviceAddress
     }
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
