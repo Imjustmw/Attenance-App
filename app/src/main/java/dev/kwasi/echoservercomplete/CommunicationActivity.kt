@@ -165,9 +165,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             tvNetworkInfo.text = "Network not connected"
             client?.close()
         } else if (!groupInfo.isGroupOwner && client == null) {
-            client = Client(this)
-            deviceIp = client!!.ip
             studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
+            client = Client(this, studentId)
+            deviceIp = client!!.ip
             tvNetworkInfo.text = "Class Network: ${groupInfo.networkName}"
         }
         Toast.makeText(this, "GroupStatus: $wfdHasConnection", Toast.LENGTH_SHORT).show()
