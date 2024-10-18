@@ -216,6 +216,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         selectedPeer = peer
         findViewById<TextView>(R.id.tvStudentChat).text = "Student: ${server?.getStudentIdByDeviceAddress(peer.deviceAddress)}"
         updateChatUI(peer)
+        Toast.makeText(this, "Selected: ${selectedPeer!!.deviceAddress}", Toast.LENGTH_SHORT).show()
     }
 
     override fun onContent(content: ContentModel) {
