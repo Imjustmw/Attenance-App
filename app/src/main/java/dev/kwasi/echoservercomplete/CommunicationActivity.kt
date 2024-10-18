@@ -138,21 +138,28 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val etString = etMessage.text.toString()
 
         if (selectedPeer != null) {
-            val studentId = server?.getStudentIdByDeviceAddress(selectedPeer!!.deviceAddress)
-            val aesKey = generateAESKey(studentId!!)
+            val deviceAddress = selectedPeer!!.deviceAddress
+            val studentId = server?.getStudentIdByDeviceAddress(deviceAddress)
+            /*val aesKey = generateAESKey(studentId!!)
             val aesIv = generateIV(studentId)
             val encryptedMessage = encryptMessage(etString, aesKey, aesIv)
-
-            // Store the original message for the server messages map
-            val serverContent = ContentModel(etString, deviceIp, studentId)
-            serverMessagesMap.getOrPut(studentId) { mutableListOf() }.add(serverContent)
-
             val encryptedContent = ContentModel(encryptedMessage, deviceIp, studentId)
-            etMessage.text.clear()
-            server?.sendMessageToClient(encryptedContent)
+             */
 
-            // Update chat UI with the original message from the server
-            chatListAdapter?.addItemToEnd(serverContent)
+            if (studentId != null) {
+                // Store the original message for the server messages map
+                val serverContent = ContentModel(etString, deviceIp, studentId, deviceAddress)
+                serverMessagesMap.getOrPut(studentId) { mutableListOf() }.add(serverContent)
+
+                etMessage.text.clear()
+                server?.sendMessageToClient(serverContent)
+
+                // Update chat UI with the original message from the server
+                chatListAdapter?.addItemToEnd(serverContent)
+            }else {
+                Log.e("Chat", "No student ID found for the device address: $deviceAddress")
+            }
+
         } else {
             Log.e("Chat", "No peer selected. Cannot send message")
         }
@@ -197,7 +204,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onPeerListUpdated(deviceList: Collection<WifiP2pDevice>) {
         hasDevices = deviceList.isNotEmpty()
         val peersWithIds = deviceList.map {device ->
-            val studentId = server?.getStudentIdByDeviceAddress(device.deviceAddress) ?: device.deviceName
+            val studentId = server?.getStudentIdByDeviceAddress(device.deviceAddress)
             device to studentId
         }
         peerListAdapter?.updateList(peersWithIds)
@@ -216,6 +223,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             val receivedMessage = content.message
             val studentId = content.studentId
             chatListAdapter?.addItemToEnd(content)
+            if (studentId != null) {
+                peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(content)
+            }
             // If student is already authenticated
             /*if (authenticateStudents.contains(studentId)) {
                 val aesKey = generateAESKey(studentId!!)

@@ -20,7 +20,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
     private val svrSocket: ServerSocket = ServerSocket(PORT, 0, InetAddress.getByName("192.168.49.1"))
     private val clientMap: HashMap<String, Socket> = HashMap()
-    private val studentIdMap: MutableMap<String, String?> = mutableMapOf()
+    private val deviceAddressMap: MutableMap<String, String?> = mutableMapOf()
     val classStudentIds = listOf("student1", "student2", "student3", "816032311")
 
     init {
@@ -42,7 +42,6 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
     private fun handleSocket(socket: Socket){
         socket.inetAddress.hostAddress?.let {
-            clientMap[it] = socket
             Log.e("SERVER", "A new connection has been detected!")
             thread {
                 val clientReader = socket.inputStream.bufferedReader()
@@ -57,9 +56,16 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                             val clientContent = Gson().fromJson(receivedJson, ContentModel::class.java)
                             iFaceImpl.onContent(clientContent)
 
-                            if (clientContent.studentId != null) {
-                                studentIdMap[it] = clientContent.studentId
+                            val studentId = clientContent.studentId
+                            val deviceAddress = clientContent.deviceAddress
+
+                            if (studentId!= null && clientMap[studentId]==null) {
+                                clientMap[studentId] = socket
+                                if (deviceAddress!=null && deviceAddressMap[deviceAddress]==null){
+                                    deviceAddressMap[deviceAddress] = studentId
+                                }
                             }
+
                         }
                     } catch (e: Exception){
                         Log.e("SERVER", "An error has occurred with the client $it")
@@ -71,10 +77,10 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
     }
 
     fun sendMessageToClient(content: ContentModel) {
-        val socket = clientMap.entries.find { it.value.inetAddress.hostAddress == content.senderIp}?.value
+        val socket = clientMap[content.studentId]
         if (socket != null) {
             val writer = socket.outputStream.bufferedWriter()
-            val newContent = ContentModel(content.message, "192.168.49.1", content.studentId)
+            val newContent = ContentModel(content.message, "192.168.49.1", content.studentId, content.deviceAddress)
             val contentStr = Gson().toJson(newContent)
             writer.write("$contentStr\n")
             writer.flush()
@@ -84,7 +90,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
     }
 
     fun getStudentIdByDeviceAddress(deviceAddress: String): String? {
-        return studentIdMap[deviceAddress]
+        return deviceAddressMap[deviceAddress]
     }
 
     fun close(){
