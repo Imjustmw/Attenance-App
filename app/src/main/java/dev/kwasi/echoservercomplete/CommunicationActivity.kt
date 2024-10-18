@@ -179,6 +179,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
         deviceAddress = thisDevice.deviceAddress
+        Toast.makeText(this, "Device Changed\n: $deviceAddress", Toast.LENGTH_SHORT).show()
     }
 
     override fun onPeerClicked(peer: WifiP2pDevice) {
