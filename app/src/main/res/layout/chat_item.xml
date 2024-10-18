@@ -23,7 +23,7 @@
         android:id="@+id/messageTimeStamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="7sp"
+        android:textSize="8sp"
         android:layout_alignBottom="@id/messageTextView"
         android:layout_alignEnd="@+id/messageTextView"/>
 

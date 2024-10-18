@@ -161,6 +161,7 @@
         <!-- Chat Interface Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/clChatInterface"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintHeight_percent="0.50"

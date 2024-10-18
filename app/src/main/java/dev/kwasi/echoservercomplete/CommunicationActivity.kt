@@ -128,6 +128,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
         val messages = (studentMessages + serverMessages).sortedBy { it.timestamp }
         chatListAdapter?.updateChat(messages)
+
+        val clChatInterface:ConstraintLayout = findViewById(R.id.clChatInterface)
+        clChatInterface.visibility = if (selectedPeer != null)View.VISIBLE else View.GONE
     }
 
     fun sendMessage(view: View) {
@@ -175,6 +178,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val tvNetworkInfo = findViewById<TextView>(R.id.tvNetworkInfo)
         if (groupInfo == null){
             server?.close()
+            server = null
             tvNetworkInfo.text = "Not connected to network"
         } else if (groupInfo.isGroupOwner && server == null){
             server = Server(this)
@@ -203,6 +207,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     override fun onPeerClicked(peer: WifiP2pDevice) {
         // Chat Directly with Peer (Student)
         selectedPeer = peer
+        findViewById<TextView>(R.id.tvStudentChat).text = "Student: ${server?.getStudentIdByDeviceAddress(peer.deviceAddress)}"
         updateChatUI(peer)
     }
 
