@@ -168,8 +168,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             deviceIp = client!!.ip
             studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
             tvNetworkInfo.text = "Class Network: ${groupInfo.networkName}"
-            // Initiate Challenge Response Protocol
-            client?.sendMessage(ContentModel("I am here", deviceIp, studentId))
         }
         Toast.makeText(this, "GroupStatus: $wfdHasConnection", Toast.LENGTH_SHORT).show()
         updateUI()
@@ -191,8 +189,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{
-            val sentStudentId = content.studentId
             val message = content.message
+            chatListAdapter?.addItemToEnd(content)
+            /*val sentStudentId = content.studentId
             val aesKey = generateAESKey(sentStudentId)
             val aesIv = generateIV(sentStudentId)
 
@@ -206,7 +205,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                 val decryptedMessage = decryptMessage(message, aesKey, aesIv)
                 val decryptedContent = ContentModel(decryptedMessage, content.senderIp, sentStudentId, content.timestamp)
                 chatListAdapter?.addItemToEnd(decryptedContent)
-            }
+            }*/
 
         }
     }
