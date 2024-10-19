@@ -101,6 +101,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    fun leaveGroup(view: View) {
+        if (wfdHasConnection) {
+            client?.close()
+            client = null
+            wfdManager?.disconnect()
+        }
+    }
+
     private fun updateUI(){
         Log.d("Communication", "wfdAdapter: $wfdAdapterEnabled, wfdHasConnection: $wfdHasConnection")
         val wfdAdapterErrorView:ConstraintLayout = findViewById(R.id.clWfdAdapterDisabled)

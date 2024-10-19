@@ -56,10 +56,13 @@
 
         <TextView
             android:id="@+id/tvWfdDisconnected"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Attendance and Feedback System"
-            android:textSize="18sp"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMaxTextSize="22sp"
+            android:autoSizeMinTextSize="14sp"
+            android:textAlignment="center"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -78,20 +81,26 @@
 
         <EditText
             android:id="@+id/etStudentId"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:inputType="number"
             android:maxLines="1"
             android:hint="Enter Student ID"
-            android:layout_height="wrap_content"
+            app:layout_constraintWidth_percent="0.5"
             app:layout_constraintStart_toStartOf="@+id/tvStudentId"
             app:layout_constraintTop_toBottomOf="@+id/tvStudentId"/>
 
         <Button
             android:id="@+id/btnDiscover"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:onClick="discoverNearbyPeers"
+            android:maxLines="1"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMaxTextSize="18sp"
+            android:autoSizeMinTextSize="8sp"
             android:text="Search for Classes"
+            app:layout_constraintWidth_percent="0.45"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/etStudentId" />
 
@@ -119,6 +128,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHasConnection"
         android:padding="24dp"
+        android:visibility="visible"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -128,16 +138,35 @@
 
         <TextView
             android:id="@+id/tvNetworkInfo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:textSize="16dp"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMaxTextSize="20sp"
+            android:autoSizeMinTextSize="14sp"
             android:textStyle="bold"
             android:textAlignment="center"
             android:text="Class network: Direct_AB_Local"
+            app:layout_constraintWidth_percent="0.8"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
+
+        <Button
+            android:id="@+id/btnLeaveGroup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/md_theme_error"
+            android:onClick="leaveGroup"
+            android:text="Leave Class"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMaxTextSize="18sp"
+            android:autoSizeMinTextSize="8sp"
+            app:layout_constraintWidth_percent="0.35"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvNetworkInfo"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvChat"
@@ -145,7 +174,7 @@
             android:layout_height="0dp"
             android:layout_marginTop="12dp"
             app:layout_constraintBottom_toTopOf="@id/llChatSend"
-            app:layout_constraintTop_toBottomOf="@id/tvNetworkInfo"
+            app:layout_constraintTop_toBottomOf="@id/btnLeaveGroup"
             app:layout_constraintVertical_bias="1.0"
             tools:layout_editor_absoluteX="201dp" />
 
