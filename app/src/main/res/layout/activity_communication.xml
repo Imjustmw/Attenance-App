@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:textAlignment="center"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:text="Class Network: Direct_AB_Local\nNetwork Password: 12345"
                 android:layout_marginTop="16dp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -129,7 +129,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/clAttendees"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             app:layout_constraintHeight_percent="0.35"
             app:layout_constraintTop_toBottomOf="@id/clNetworkInfo"
             app:layout_constraintStart_toStartOf="parent"
@@ -150,7 +150,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvAttendees"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintTop_toBottomOf="@id/tvAttendeesTitle"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -163,8 +163,7 @@
             android:id="@+id/clChatInterface"
             android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintHeight_percent="0.50"
+            android:layout_height="0dp"
             app:layout_constraintTop_toBottomOf="@id/clAttendees"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -185,10 +184,12 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvChat"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintTop_toBottomOf="@+id/tvStudentChat"
-                app:layout_constraintBottom_toTopOf="@id/llChatSend"/>
+                app:layout_constraintBottom_toTopOf="@id/llChatSend"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
             <LinearLayout
                 android:id="@+id/llChatSend"

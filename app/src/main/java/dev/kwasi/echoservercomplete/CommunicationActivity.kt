@@ -269,35 +269,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
         }
     }
 
-    private fun hashStrSha256(str: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        return digest.digest(str.toByteArray(UTF_8)).joinToString("") { "%02x".format(it) }
-    }
 
-    private fun generateAESKey(seed: String): SecretKeySpec {
-        val keyBytes = hashStrSha256(seed).substring(0, 32).toByteArray(UTF_8)
-        return SecretKeySpec(keyBytes, "AES")
-    }
-
-    private fun generateIV(seed: String): IvParameterSpec {
-        val ivBytes = seed.substring(0, 16).toByteArray(UTF_8)
-        return IvParameterSpec(ivBytes)
-    }
-
-    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
-    private fun encryptMessage(plaintext: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
-        cipher.init(Cipher.ENCRYPT_MODE, aesKey, aesIv)
-        val encrypted = cipher.doFinal(plaintext.toByteArray())
-        return Base64.Default.encode(encrypted)
-    }
-
-    @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
-    private fun decryptMessage(encryptedText: String, aesKey: SecretKeySpec, aesIv: IvParameterSpec): String {
-        val decodedBytes = Base64.Default.decode(encryptedText)
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
-        cipher.init(Cipher.DECRYPT_MODE, aesKey, aesIv)
-        return String(cipher.doFinal(decodedBytes))
-    }
 
 }

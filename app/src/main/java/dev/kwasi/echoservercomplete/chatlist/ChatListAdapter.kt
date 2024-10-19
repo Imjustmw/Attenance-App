@@ -39,10 +39,14 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
         val chat = chatList[position]
         val messageLayout = (holder.messageView.parent as RelativeLayout)
 
-        if (chat.senderIp=="192.168.49.1")
+        if (chat.senderIp == "192.168.49.1") {
             messageLayout.gravity = Gravity.END
-        else
+            holder.messageView.setBackgroundResource(R.color.md_theme_secondaryContainer)
+        } else {
             messageLayout.gravity = Gravity.START
+            holder.messageView.setBackgroundResource(R.color.md_theme_primaryContainer)
+        }
+
 
         holder.messageView.text = chat.message
         holder.timeStamp.text = formatTimestamp(chat.timestamp)
