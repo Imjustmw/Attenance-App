@@ -214,7 +214,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
             val decryptedMessage = Encryption.decryptWithID(studentId!!, content.message)
             val decryptedContent = ContentModel(decryptedMessage, content.senderIp, studentId, content.timestamp)
             peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(decryptedContent)
-            chatListAdapter?.addItemToEnd(content)
+            chatListAdapter?.addItemToEnd(decryptedContent)
         }
     }
 
