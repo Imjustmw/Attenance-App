@@ -4,6 +4,7 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.util.Log
 import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.models.Encryption
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.Socket
@@ -13,6 +14,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
     private lateinit var clientSocket: Socket
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
+    private var authenticated = false
     var ip:String = ""
 
     init {
@@ -22,7 +24,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
             writer = clientSocket.outputStream.bufferedWriter()
             ip = clientSocket.inetAddress.hostAddress!!
 
-            // Send Challenge Protol
+            // Send Challenge Protocol
             val challengeProtocol = ContentModel(
                 message = "I am here",
                 senderIp = ip,
@@ -35,7 +37,21 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
                     val serverResponse = reader.readLine()
                     if (serverResponse != null){
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
-                        networkMessageInterface.onContent(serverContent)
+
+                        if (!authenticated) {
+                            try {
+                                val number = serverContent.message.toInt() // throw except if not number
+                                val encryptedMessage = Encryption.encryptWithID(studentId, serverContent.message)
+                                sendMessage(ContentModel(encryptedMessage, ip, studentId))
+                                authenticated = true
+                            } catch (e: NumberFormatException) {
+                                Log.e("CLIENT", "Received message is not a valid number: ${serverContent.message}")
+                            }
+
+                        } else {
+                            // Display content received from server once authenticated
+                            networkMessageInterface.onContent(serverContent)
+                        }
                     }
                 } catch(e: Exception){
                     Log.e("CLIENT", "An error has occurred in the client")
