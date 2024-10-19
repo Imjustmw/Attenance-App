@@ -202,9 +202,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
     }
 
     override fun onAttendeeListUpdated(attendees: List<String>) {
-        hasDevices = attendees.isNotEmpty()
-        attendeeListAdapter?.updateList(attendees)
-        updateUI()
+        runOnUiThread {
+            hasDevices = attendees.isNotEmpty()
+            attendeeListAdapter?.updateList(attendees)
+            updateUI()
+        }
     }
 
     override fun onAttendeeClicked(studentId: String) {

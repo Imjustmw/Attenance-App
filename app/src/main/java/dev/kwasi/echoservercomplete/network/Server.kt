@@ -115,7 +115,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
                         }
                     } catch (e: Exception){
-                        Log.e("SERVER", "An error has occurred with the client $it")
+                        Log.e("SERVER", "An error has occurred with the client $it: ${e.message}")
                         e.printStackTrace()
                     }
                 }
