@@ -20,18 +20,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.models.Encryption
 import dev.kwasi.echoservercomplete.network.Client
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
-import java.security.MessageDigest
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
-import kotlin.io.encoding.Base64
-import kotlin.text.Charsets.UTF_8
+
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -127,14 +123,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val clientContent = ContentModel(etString, deviceIp, studentId)
         etMessage.text.clear()
         chatListAdapter?.addItemToEnd(clientContent)
-        client?.sendMessage(clientContent)
 
-        /*// Encrypt Message
-        val aesKey = generateAESKey(studentId)
-        val aesIv = generateIV(studentId)
-        val encryptedText = encryptMessage(etString, aesKey, aesIv)
+        // Encrypt Message
+        val encryptedText = Encryption.decryptWithID(studentId, etString)
         val encryptedContent = ContentModel(encryptedText, deviceIp, studentId)
-        client?.sendMessage(encryptedContent)*/
+        client?.sendMessage(encryptedContent)
 
     }
 
@@ -191,24 +184,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{
-            val message = content.message
-            chatListAdapter?.addItemToEnd(content)
-            /*val sentStudentId = content.studentId
-            val aesKey = generateAESKey(sentStudentId)
-            val aesIv = generateIV(sentStudentId)
-
-            if (!authorized) {
-                // This should be random R, so encrypt and return
-                val encryptedMessage = encryptMessage(message, aesKey, aesIv)
-                client?.sendMessage(ContentModel(encryptedMessage, deviceIp, studentId))
-                authorized = true
-            } else {
-                // Authorized to receive messages, must be decrypted
-                val decryptedMessage = decryptMessage(message, aesKey, aesIv)
-                val decryptedContent = ContentModel(decryptedMessage, content.senderIp, sentStudentId, content.timestamp)
-                chatListAdapter?.addItemToEnd(decryptedContent)
-            }*/
-
+            val decryptedMessage = Encryption.decryptWithID(content.studentId, content.message)
+            val decryptedContent = ContentModel(decryptedMessage, content.senderIp, content.studentId, content.timestamp)
+            chatListAdapter?.addItemToEnd(decryptedContent)
         }
     }
 
