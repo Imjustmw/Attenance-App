@@ -40,10 +40,10 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
         val messageLayout = (holder.messageView.parent as RelativeLayout)
 
         if (chat.senderIp == "192.168.49.1") {
-            messageLayout.gravity = Gravity.END
+            messageLayout.gravity = Gravity.START
             holder.messageView.setBackgroundResource(R.color.md_theme_secondaryContainer)
         } else {
-            messageLayout.gravity = Gravity.START
+            messageLayout.gravity = Gravity.END
             holder.messageView.setBackgroundResource(R.color.md_theme_primaryContainer)
         }
 
