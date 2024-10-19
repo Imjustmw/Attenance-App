@@ -125,7 +125,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         chatListAdapter?.addItemToEnd(clientContent)
 
         // Encrypt Message
-        val encryptedText = Encryption.decryptWithID(studentId, etString)
+        val encryptedText = Encryption.encryptWithID(studentId, etString)
         val encryptedContent = ContentModel(encryptedText, deviceIp, studentId)
         client?.sendMessage(encryptedContent)
 
