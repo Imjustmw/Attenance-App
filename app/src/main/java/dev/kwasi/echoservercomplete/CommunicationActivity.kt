@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
+import dev.kwasi.echoservercomplete.models.Encryption
 import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
 import dev.kwasi.echoservercomplete.peerlist.AttendeeListAdapter
@@ -139,20 +140,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
         val etString = etMessage.text.toString()
 
         if (selectedStudent != null) {
-            /*val aesKey = generateAESKey(studentId!!)
-            val aesIv = generateIV(studentId)
-            val encryptedMessage = encryptMessage(etString, aesKey, aesIv)
-            val encryptedContent = ContentModel(encryptedMessage, deviceIp, studentId)
-             */
-
             val serverContent = ContentModel(etString, deviceIp, selectedStudent)
             serverMessagesMap.getOrPut(selectedStudent!!) { mutableListOf() }.add(serverContent)
-
             etMessage.text.clear()
-
-            sendMessageToClient(serverContent)
             chatListAdapter?.addItemToEnd(serverContent)
 
+            // Encrypt Message
+            val encryptedMessage = Encryption.decryptWithID(selectedStudent!!, etString)
+            val encryptedContent = ContentModel(encryptedMessage, deviceIp, selectedStudent)
+            sendMessageToClient(encryptedContent)
         } else {
             Log.e("Chat", "No peer selected. Cannot send message")
         }
@@ -214,60 +210,12 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
 
     override fun onContent(content: ContentModel) {
         runOnUiThread {
-            val receivedMessage = content.message
             val studentId = content.studentId
+            val decryptedMessage = Encryption.decryptWithID(studentId!!, content.message)
+            val decryptedContent = ContentModel(decryptedMessage, content.senderIp, studentId, content.timestamp)
+            peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(decryptedContent)
             chatListAdapter?.addItemToEnd(content)
-            if (studentId != null) {
-                peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(content)
-            }
-            // If student is already authenticated
-            /*if (authenticateStudents.contains(studentId)) {
-                val aesKey = generateAESKey(studentId!!)
-                val aesIv = generateIV(studentId)
-                val decryptedMessage = decryptMessage(receivedMessage, aesKey, aesIv)
-                val decryptedContent = ContentModel(decryptedMessage, content.senderIp, studentId)
-
-                // store the received message in the peerMessageMap
-                chatListAdapter?.addItemToEnd(decryptedContent)
-                peerMessagesMap.getOrPut(studentId) { mutableListOf()}.add(decryptedContent)
-                Log.d("Messages", "Added message for student: $studentId. Total messages: ${peerMessagesMap[studentId]?.size}")
-                return@runOnUiThread
-            }
-
-            // Start challenge-response protocol
-            if (receivedMessage == "I am here" && server?.classStudentIds?.contains(studentId) == true) {
-
-                // Generate and send random challenge R to the student
-                val randomR = Random.nextInt(1, 10001).toString()
-                challengeMap[studentId!!] = randomR
-                server?.sendMessageToClient(ContentModel(randomR, deviceIp, studentId))
-
-            } else if (challengeMap[studentId] != null) {
-                // Process the response from the challenge
-                val randomR = challengeMap[studentId]
-
-                if (randomR != null) {
-                    val aesKey = generateAESKey(studentId!!)
-                    val aesIv = generateIV(studentId)
-                    val decryptedR = decryptMessage(receivedMessage, aesKey, aesIv)
-
-                    // Verify the decrypted response
-                    if (decryptedR == randomR) {
-                        Log.i("Authentication", "Student authenticated successfully: $studentId")
-                        authenticateStudents.add(studentId)
-                    } else {
-                        Log.e("Authentication", "Failed to authenticate student: $studentId")
-                    }
-
-                    challengeMap.remove(studentId)
-                } else {
-                    Log.e("Authentication", "No challenge found for student: $studentId")
-                }
-
-            }*/
         }
     }
-
-
 
 }
