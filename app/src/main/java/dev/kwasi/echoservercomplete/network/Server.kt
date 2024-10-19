@@ -103,6 +103,11 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                                         removeClient(studentId)
                                         break
                                     }
+                                } else if (clientContent.message == "leaving" && authorizedList.contains(studentId)) {
+                                    // Request to leave group
+                                    sendMessageToClient(ContentModel("leaving", IP, studentId))
+                                    removeClient(studentId)
+                                    break
                                 } else if (clientMap[studentId]!=null) {
                                     // Student can send messages once registered
                                     iFaceImpl.onContent(clientContent)
@@ -153,7 +158,6 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
 
     private fun removeClient(studentId: String) {
         val socket = clientMap[studentId]
-
         if (socket != null) {
             // Close the client's socket connection
             try {

@@ -103,6 +103,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
     }
 
     fun removeGroup(view: View) {
+        if (server != null) {
+            server?.close()
+            server = null
+        }
         wfdManager?.disconnect()
     }
 

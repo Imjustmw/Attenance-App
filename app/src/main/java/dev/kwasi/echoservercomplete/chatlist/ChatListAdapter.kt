@@ -41,12 +41,11 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
 
         if (chat.senderIp == "192.168.49.1") {
             messageLayout.gravity = Gravity.END
-            holder.messageView.setBackgroundResource(R.color.md_theme_secondaryContainer)
+            holder.messageView.setBackgroundResource(R.color.md_theme_outlineVariant_highContrast)
         } else {
             messageLayout.gravity = Gravity.START
-            holder.messageView.setBackgroundResource(R.color.md_theme_primaryContainer)
+            holder.messageView.setBackgroundResource(R.color.md_theme_onSurfaceVariant_mediumContrast)
         }
-
 
         holder.messageView.text = chat.message
         holder.timeStamp.text = formatTimestamp(chat.timestamp)
