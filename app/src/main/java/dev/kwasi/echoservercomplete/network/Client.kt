@@ -48,7 +48,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
                                 Log.e("CLIENT", "Received message is not a valid number: ${serverContent.message}")
                             }
 
-                        } else {
+                        } else if (serverContent.message == "leaving") {
                             // Display content received from server once authenticated
                             networkMessageInterface.onContent(serverContent)
                         }

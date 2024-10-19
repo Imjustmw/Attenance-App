@@ -103,6 +103,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     fun leaveGroup(view: View) {
         if (wfdHasConnection) {
+            val leaveMessage = ContentModel("leaving", deviceIp, studentId)
+            client?.sendMessage(leaveMessage)
+        }
+    }
+
+    fun removeGroup() {
+        if (wfdHasConnection) {
             client?.close()
             client = null
             wfdManager?.disconnect()
@@ -192,9 +199,15 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{
-            val decryptedMessage = Encryption.decryptWithID(content.studentId, content.message)
-            val decryptedContent = ContentModel(decryptedMessage, content.senderIp, content.studentId, content.timestamp)
-            chatListAdapter?.addItemToEnd(decryptedContent)
+            if (content.message == "leaving") {
+                // Leave group safely
+                removeGroup()
+            } else {
+                // Display messages as normal
+                val decryptedMessage = Encryption.decryptWithID(content.studentId, content.message)
+                val decryptedContent = ContentModel(decryptedMessage, content.senderIp, content.studentId, content.timestamp)
+                chatListAdapter?.addItemToEnd(decryptedContent)
+            }
         }
     }
 
