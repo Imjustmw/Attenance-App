@@ -117,6 +117,7 @@
     <color name="md_theme_onSurfaceVariant_highContrast">#21242B</color>
     <color name="md_theme_outline_highContrast">#40434A</color>
     <color name="md_theme_outlineVariant_highContrast">#40434A</color>
+    <color name="md_theme_outlineVariant_darker">#313338</color>
     <color name="md_theme_scrim_highContrast">#000000</color>
     <color name="md_theme_inverseSurface_highContrast">#2E3036</color>
     <color name="md_theme_inverseOnSurface_highContrast">#FFFFFF</color>

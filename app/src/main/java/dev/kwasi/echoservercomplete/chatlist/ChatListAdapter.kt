@@ -41,7 +41,7 @@ class ChatListAdapter : RecyclerView.Adapter<ChatListAdapter.ViewHolder>(){
 
         if (chat.senderIp == "192.168.49.1") {
             messageLayout.gravity = Gravity.END
-            holder.messageView.setBackgroundResource(R.color.md_theme_outlineVariant_highContrast)
+            holder.messageView.setBackgroundResource(R.color.md_theme_outlineVariant_darker)
         } else {
             messageLayout.gravity = Gravity.START
             holder.messageView.setBackgroundResource(R.color.md_theme_onSurfaceVariant_mediumContrast)
