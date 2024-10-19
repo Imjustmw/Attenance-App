@@ -177,7 +177,7 @@
         <!-- Chat Interface Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/clChatInterface"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintTop_toBottomOf="@id/clAttendees"
@@ -193,7 +193,7 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textAlignment="center"
-                android:text="Student - 816032311"
+                android:text="Student"
                 app:layout_constraintTop_toTopOf="@+id/clChatInterface"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
