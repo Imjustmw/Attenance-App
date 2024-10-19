@@ -121,15 +121,22 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
     }
 
-    private fun updateChatUI(studentId: String) {
-        val studentMessages = peerMessagesMap[studentId] ?: mutableListOf()
-        val serverMessages = serverMessagesMap[studentId] ?: mutableListOf()
+    private fun updateChatUI(studentId: String?) {
+        // If studentId is null, use an empty list for messages
+        val studentMessages = studentId?.let { peerMessagesMap[it] } ?: mutableListOf()
+        val serverMessages = studentId?.let { serverMessagesMap[it] } ?: mutableListOf()
 
+        // Combine and sort the messages by timestamp
         val messages = (studentMessages + serverMessages).sortedBy { it.timestamp }
         chatListAdapter?.updateChat(messages)
 
-        val clChatInterface:ConstraintLayout = findViewById(R.id.clChatInterface)
-        clChatInterface.visibility = if (selectedStudent != null)View.VISIBLE else View.GONE
+        // Set the student chat text, or default to "Student" if studentId is null
+        val studentDisplayText = if (studentId.isNullOrEmpty()) "Student" else "Student: $studentId"
+        findViewById<TextView>(R.id.tvStudentChat).text = studentDisplayText
+
+        // Show or hide chat interface depending on whether a student is selected
+        val clChatInterface: ConstraintLayout = findViewById(R.id.clChatInterface)
+        clChatInterface.visibility = if (studentId != null) View.VISIBLE else View.GONE
     }
 
     // New function to handle sending messages in a background thread
@@ -206,8 +213,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
             // reset UI if selected Student left
             if (selectedStudent != null && !attendees.contains(selectedStudent)){
                 selectedStudent = null
-                findViewById<TextView>(R.id.tvStudentChat).text = "Student"
-                updateChatUI(selectedStudent!!)
+                updateChatUI(null)
             }
             updateUI()
         }
@@ -215,7 +221,6 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
 
     override fun onAttendeeClicked(studentId: String) {
         selectedStudent = studentId
-        findViewById<TextView>(R.id.tvStudentChat).text = "Student: $studentId"
         updateChatUI(studentId)
     }
 
