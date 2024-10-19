@@ -47,8 +47,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
                             } catch (e: NumberFormatException) {
                                 Log.e("CLIENT", "Received message is not a valid number: ${serverContent.message}")
                             }
-
-                        } else if (serverContent.message == "leaving") {
+                        } else {
                             // Display content received from server once authenticated
                             networkMessageInterface.onContent(serverContent)
                         }
