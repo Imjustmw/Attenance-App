@@ -113,6 +113,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             client?.close()
             client = null
             wfdManager?.disconnect()
+            chatListAdapter?.clearChat()
         }
     }
 
@@ -196,6 +197,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    override fun onAuthenticationError() {
+        Toast.makeText(this, "Authentication Error:\nInvalid ID", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onContent(content: ContentModel) {
         runOnUiThread{

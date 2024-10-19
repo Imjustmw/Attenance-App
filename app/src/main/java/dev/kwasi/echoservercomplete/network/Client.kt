@@ -45,6 +45,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, priv
                                 sendMessage(ContentModel(encryptedMessage, ip, studentId))
                                 authenticated = true
                             } catch (e: NumberFormatException) {
+                                networkMessageInterface.onAuthenticationError()
                                 Log.e("CLIENT", "Received message is not a valid number: ${serverContent.message}")
                             }
                         } else {
