@@ -212,6 +212,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
 
             // reset UI if selected Student left
             if (selectedStudent != null && !attendees.contains(selectedStudent)){
+                peerMessagesMap.remove(selectedStudent)
+                serverMessagesMap.remove(selectedStudent)
                 selectedStudent = null
                 updateChatUI(null)
             }
