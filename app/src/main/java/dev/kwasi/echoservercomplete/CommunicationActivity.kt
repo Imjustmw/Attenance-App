@@ -202,6 +202,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
         runOnUiThread {
             hasDevices = attendees.isNotEmpty()
             attendeeListAdapter?.updateList(attendees)
+
+            // reset UI if selected Student left
+            if (selectedStudent != null && !attendees.contains(selectedStudent)){
+                selectedStudent = null
+                findViewById<TextView>(R.id.tvStudentChat).text = "Student"
+                updateChatUI(selectedStudent!!)
+            }
             updateUI()
         }
     }
