@@ -24,17 +24,8 @@ import dev.kwasi.echoservercomplete.network.NetworkMessageInterface
 import dev.kwasi.echoservercomplete.network.Server
 import dev.kwasi.echoservercomplete.peerlist.AttendeeListAdapter
 import dev.kwasi.echoservercomplete.peerlist.AttendeeListAdapterInterface
-import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
-import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
-import kotlin.random.Random
-import java.security.MessageDigest
-import javax.crypto.Cipher
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
-import kotlin.io.encoding.Base64
-import kotlin.text.Charsets.UTF_8
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, AttendeeListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -136,6 +127,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
         clChatInterface.visibility = if (selectedStudent != null)View.VISIBLE else View.GONE
     }
 
+    // New function to handle sending messages in a background thread
+    private fun sendMessageToClient(content: ContentModel) {
+        Thread {
+            server?.sendMessageToClient(content)
+        }.start()
+    }
+
     fun sendMessage(view: View) {
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
@@ -151,9 +149,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, Attendee
             serverMessagesMap.getOrPut(selectedStudent!!) { mutableListOf() }.add(serverContent)
 
             etMessage.text.clear()
-            server?.sendMessageToClient(serverContent)
 
-            // Update chat UI with the original message from the server
+            sendMessageToClient(serverContent)
             chatListAdapter?.addItemToEnd(serverContent)
 
         } else {

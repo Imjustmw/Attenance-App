@@ -103,9 +103,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                                         removeClient(studentId)
                                         break
                                     }
-                                }
-
-                                if (clientMap[studentId]!=null) {
+                                } else if (clientMap[studentId]!=null) {
                                     // Student can send messages once registered
                                     iFaceImpl.onContent(clientContent)
                                 }
