@@ -79,7 +79,8 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                                 if (clientContent.message == "I am here" && !authorizedList.contains(studentId)) {
                                     val randomR = Encryption.rand().toString()
                                     challengeList[studentId] = randomR
-                                    sendMessageToClient(ContentModel(randomR,IP,studentId))
+                                    sendMessageWithSocket(socket,ContentModel(randomR,IP,studentId))
+                                    Log.e("SERVER", "Started Challenge for student $studentId")
 
                                 } else if (challengeList[studentId] != null) {
                                     // Continue Challenge Response Protocol
@@ -95,6 +96,7 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                                             clientMap[studentId] = socket
                                             addAttendee(studentId)
                                         }
+                                        Log.e("SERVER", "Adding student $studentId to clientMap")
                                     } else {
                                         // Failed authentication, kick the client out
                                         Log.e("SERVER", "Failed authentication for student $studentId")
@@ -119,6 +121,14 @@ class Server(private val iFaceImpl:NetworkMessageInterface) {
                 }
             }
         }
+    }
+
+    private fun sendMessageWithSocket(socket: Socket, content: ContentModel) {
+        val writer = socket.outputStream.bufferedWriter()
+        val newContent = ContentModel(content.message, IP, content.studentId)
+        val contentStr = Gson().toJson(newContent)
+        writer.write("$contentStr\n")
+        writer.flush()
     }
 
     fun sendMessageToClient(content: ContentModel) {
