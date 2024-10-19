@@ -16,17 +16,21 @@
         android:paddingEnd="24dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:background="@color/md_theme_secondaryContainer"
-        android:textSize="12sp"/>
+        android:background="@color/md_theme_outlineVariant_highContrast"
+        android:textColor="@color/md_theme_outlineVariant"
+        android:autoSizeMaxTextSize="18sp"
+        android:autoSizeMinTextSize="8sp"
+        android:autoSizeTextType="uniform"/>
 
     <TextView
         android:id="@+id/messageTimeStamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="-1dp"
-        android:textSize="7sp"
-        android:textColor="@android:color/white"
+        android:gravity="bottom|end"
+        android:textColor="@color/md_theme_outlineVariant"
+        android:autoSizeMaxTextSize="8sp"
+        android:autoSizeMinTextSize="4sp"
+        android:autoSizeTextType="uniform"
         android:layout_alignBottom="@id/messageTextView"
         android:layout_alignEnd="@+id/messageTextView"/>
 
