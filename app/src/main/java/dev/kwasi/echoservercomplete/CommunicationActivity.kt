@@ -175,6 +175,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         if (groupInfo == null){
             tvNetworkInfo.text = "Network not connected"
             client?.close()
+            client = null
         } else if (!groupInfo.isGroupOwner && client == null) {
             studentId = findViewById<EditText>(R.id.etStudentId).text.toString()
             client = Client(this, studentId)
